@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cubo Mágico com Popup</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
+
+    .scene {
+      width: 100vw;
+      height: 100vh;
+      perspective: 1000px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .cube-container {
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(-30deg) rotateY(30deg);
+      transition: transform 0.1s linear;
+    }
+
+    .mini-cube {
+      position: absolute;
+      width: 66px;
+      height: 66px;
+      transform-style: preserve-3d;
+    }
+
+    .face {
+      position: absolute;
+      width: 66px;
+      height: 66px;
+      background: orange;
+      opacity: 0.95;
+      border: 2px solid black;
+      box-sizing: border-box;
+      box-shadow: 0 0 50px rgba(255, 165, 0, 0.6),
+                  0 0 50px rgba(255, 140, 0, 0.4);
+    }
+
+    .face.front  { transform: rotateY(  0deg) translateZ(33px); }
+    .face.back   { transform: rotateY(180deg) translateZ(33px); }
+    .face.right  { transform: rotateY( 90deg) translateZ(33px); }
+    .face.left   { transform: rotateY(-90deg) translateZ(33px); }
+    .face.top    { transform: rotateX( 90deg) translateZ(33px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(33px); }
+
+    .face-front::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-top::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-back::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-left::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-up::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+.face-bottom::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+    .fullscreen-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <div style="display: flex; width: 100%; justify-content:center;align-itens:center;color:blue">
+    <h1>DYAN LOHAN</h1>
+  </div>
+  <div class="scene" id="scene">
+    <div class="cube-container" id="cubeContainer"></div>
+  </div>
+
+  <script>
+    const cubeContainer = document.getElementById('cubeContainer');
+    const cubeSize = 66;
+    const offset = cubeSize;
+
+    const facePositions = [
+      { face: 'front',  x:  0, y:  0, z:  1 },
+      { face: 'back',   x:  0, y:  0, z: -1 },
+      { face: 'right',  x:  1, y:  0, z:  0 },
+      { face: 'left',   x: -1, y:  0, z:  0 },
+      { face: 'top',    x:  0, y: -1, z:  0 },
+      { face: 'bottom', x:  0, y:  1, z:  0 },
+    ];
+
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        for (let z = -1; z <= 1; z++) {
+          const miniCube = document.createElement('div');
+          miniCube.className = 'mini-cube';
+          miniCube.style.transform = `translate3d(${x * offset}px, ${y * offset}px, ${z * offset}px)`;
+
+          facePositions.forEach(({ face, x: fx, y: fy, z: fz }) => {
+            if (x === fx || y === fy || z === fz) {
+              const faceDiv = document.createElement('div');
+              faceDiv.className = `face ${face} face-${face}`;
+              faceDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.fullscreen-popup').forEach(p => p.remove());
+
+                const popup = document.createElement('div');
+                popup.className = 'fullscreen-popup';
+
+                let htmlContent = '';
+                switch (face) {
+                  case 'front':
+                    htmlContent = `<div><h1>Face Frontal</h1><p>Bem-vindo à face frontal do cubo!</p></div>`;
+                    break;
+                  case 'back':
+                    htmlContent = `<div><h1>Face Traseira</h1><p>Aqui está o conteúdo da parte de trás.</p></div>`;
+                    break;
+                  case 'right':
+                    htmlContent = `<div>
+                      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsoazMkhGaNEfWKBI-Cs0qgmuJPpo5VAYtiA&s">
+                      <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/2RrWvOyaSO718wJwsMH8aV?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                      <h1>Face Direita</h1><p>Você clicou no lado direito!</p></div>`;
+                    break;
+                  case 'left':
+                    htmlContent = `<div><h1>Face Esquerda</h1><p>Esta é a lateral esquerda do cubo.</p></div>`;
+                    break;
+                  case 'top':
+                    htmlContent = `<div><h1>Face Superior</h1><p>Topo do cubo!</p></div>`;
+                    break;
+                  case 'bottom':
+                    htmlContent = `<div><h1>Face Inferior</h1><p>Parte de baixo.</p></div>`;
+                    break;
+                  default:
+                    htmlContent = `<div><h1>Face Desconhecida</h1></div>`;
+                }
+
+                popup.innerHTML = htmlContent;
+                popup.addEventListener('click', () => popup.remove());
+                document.body.appendChild(popup);
+              });
+              miniCube.appendChild(faceDiv);
+            }
+          });
+
+          cubeContainer.appendChild(miniCube);
+        }
+      }
+    }
+
+    // Rotação com mouse
+    let isDragging = false;
+    let lastX, lastY;
+    let rotationX = -30;
+    let rotationY = 30;
+
+    document.getElementById('scene').addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    document.addEventListener('mouseup', () => isDragging = false);
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
+        rotationY += deltaX * 0.5;
+        rotationX -= deltaY * 0.5;
+        cubeContainer.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      }
+    });
+  </script>
+</body>
+</html>

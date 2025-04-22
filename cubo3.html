@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cubo Mágico com Navegação</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
+
+    .scene {
+      width: 100vw;
+      height: 100vh;
+      perspective: 1000px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: grab;
+    }
+
+    .cube-container {
+      transform-style: preserve-3d;
+      transform: rotateX(-30deg) rotateY(30deg);
+      transition: transform 0.5s ease;
+    }
+
+    .mini-cube {
+      position: absolute;
+      width: 66px;
+      height: 66px;
+      transform-style: preserve-3d;
+    }
+
+    .face {
+      position: absolute;
+      width: 66px;
+      height: 66px;
+      background: rgb(255, 255, 255);
+      border: 1px solid black;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .face.front  { transform: rotateY(  0deg) translateZ(33px); }
+    .face.back   { transform: rotateY(180deg) translateZ(33px); }
+    .face.right  { transform: rotateY( 90deg) translateZ(33px); }
+    .face.left   { transform: rotateY(-90deg) translateZ(33px); }
+    .face.top    { transform: rotateX( 90deg) translateZ(33px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(33px); }
+
+    .fullscreen-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      z-index: 1000;
+    }
+
+    .fullscreen-popup button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .arrow-btn {
+      position: absolute;
+      font-size: 24px;
+      padding: 12px 18px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: white;
+      color: black;
+      z-index: 10;
+      transition: background 0.2s;
+    }
+
+    .arrow-btn:hover {
+      background: #ccc;
+    }
+
+    .arrow-up    { top: 20px; left: 50%; transform: translateX(-50%); }
+    .arrow-down  { bottom: 20px; left: 50%; transform: translateX(-50%); }
+    .arrow-left  { left: 20px; top: 50%; transform: translateY(-50%); }
+    .arrow-right { right: 20px; top: 50%; transform: translateY(-50%); }
+  </style>
+</head>
+<body>
+
+  <div class="fullscreen-popup" id="initialPopup">
+    <div>🎉 Bem-vindo ao Cubo Mágico 3D!</div>
+    <button onclick="document.getElementById('initialPopup').style.display = 'none'">Fechar</button>
+  </div>
+
+  <div class="scene" id="scene">
+    <div class="cube-container" id="cubeContainer"></div>
+
+    <button class="arrow-btn arrow-up" onclick="rotateCube('top')">⬆️</button>
+    <button class="arrow-btn arrow-down" onclick="rotateCube('bottom')">⬇️</button>
+    <button class="arrow-btn arrow-left" onclick="rotateCube('left')">⬅️</button>
+    <button class="arrow-btn arrow-right" onclick="rotateCube('right')">➡️</button>
+  </div>
+
+  <script>
+    const cubeContainer = document.getElementById('cubeContainer');
+    const cubeSize = 66;
+    const offset = cubeSize;
+    let rotationX = -30;
+    let rotationY = 30;
+
+    const facePositions = [
+      { face: 'front',  x:  0, y:  0, z:  1 },
+      { face: 'back',   x:  0, y:  0, z: -1 },
+      { face: 'right',  x:  1, y:  0, z:  0 },
+      { face: 'left',   x: -1, y:  0, z:  0 },
+      { face: 'top',    x:  0, y: -1, z:  0 },
+      { face: 'bottom', x:  0, y:  1, z:  0 },
+    ];
+
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        for (let z = -1; z <= 1; z++) {
+          const miniCube = document.createElement('div');
+          miniCube.className = 'mini-cube';
+          miniCube.style.transform = `translate3d(${x * offset}px, ${y * offset}px, ${z * offset}px)`;
+
+          facePositions.forEach(({ face, x: fx, y: fy, z: fz }) => {
+            if (x === fx || y === fy || z === fz) {
+              const faceDiv = document.createElement('div');
+              faceDiv.className = `face ${face}`;
+              faceDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.fullscreen-popup:not(#initialPopup)').forEach(p => p.remove());
+
+                const popup = document.createElement('div');
+                popup.className = 'fullscreen-popup';
+                popup.innerHTML = `<div><h1>Face ${face}</h1><p>Conteúdo da face ${face}.</p></div>`;
+                popup.addEventListener('click', () => popup.remove());
+                document.body.appendChild(popup);
+              });
+              miniCube.appendChild(faceDiv);
+            }
+          });
+
+          cubeContainer.appendChild(miniCube);
+        }
+      }
+    }
+
+    function rotateCube(direction) {
+      switch (direction) {
+        case 'front':  rotationX = 0; rotationY = 0; break;
+        case 'back':   rotationX = 0; rotationY = 180; break;
+        case 'left':   rotationX = 0; rotationY = -90; break;
+        case 'right':  rotationX = 0; rotationY = 90; break;
+        case 'top':    rotationX = 90; break;
+        case 'bottom': rotationX = -90; break;
+      }
+      cubeContainer.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    }
+
+    // Controle de arraste opcional
+    let isDragging = false;
+    let lastX, lastY;
+
+    document.getElementById('scene').addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    document.addEventListener('mouseup', () => isDragging = false);
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
+        rotationY += deltaX * 0.5;
+        rotationX -= deltaY * 0.5;
+        cubeContainer.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      }
+    });
+  </script>
+</body>
+</html>
